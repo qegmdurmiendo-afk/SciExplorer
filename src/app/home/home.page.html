@@ -76,6 +76,41 @@
           </ion-card>
         </div>
 
+        <ion-card class="mini-card ai-coach-card" button="true" (click)="openAiCoach()">
+          <div class="mini-inner">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>AI Coach</span>
+          </div>
+        </ion-card>
+
+        <div *ngIf="aiChatOpen" class="ai-chat-panel">
+          <div class="ai-chat-header">
+            <div>
+              <p class="eyebrow">AI Learning Coach</p>
+              <h3>Talk with your tutor</h3>
+            </div>
+            <button class="close-chat-button" type="button" (click)="closeAiCoach()">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="ai-chat-messages">
+            <div *ngFor="let message of aiChatMessages" class="chat-bubble" [ngClass]="message.role === 'user' ? 'chat-user' : 'chat-assistant'">
+              <p>{{ message.text }}</p>
+            </div>
+            <div *ngIf="aiChatLoading" class="chat-bubble chat-assistant">
+              <p>Thinking…</p>
+            </div>
+          </div>
+
+          <div class="ai-chat-input-row">
+            <ion-input [(ngModel)]="aiChatInput" placeholder="Ask how to improve in this topic..." (keyup.enter)="sendAiCoachMessage()"></ion-input>
+            <ion-button fill="solid" size="small" (click)="sendAiCoachMessage()" [disabled]="aiChatLoading || !aiChatInput.trim()">
+              Send
+            </ion-button>
+          </div>
+        </div>
+
         <div class="menu-footer">
           <ion-button expand="block" fill="clear" class="link-button" (click)="showInstructions = !showInstructions">
             Instructions
@@ -214,6 +249,49 @@
         {{ studyLater.some(item => item.topicId === selectedTopic?.id) ? 'Saved to Study Later' : 'Study Later' }}
       </ion-button>
 
+      <ion-card *ngIf="selectedTopic && selectedTopic.curriculum" class="curriculum-panel">
+        <ion-card-content>
+          <div class="curriculum-header">
+            <span class="curriculum-tag">DepEd</span>
+            <span class="curriculum-chip">Grade {{ selectedTopic.curriculum.gradeLevel }}</span>
+          </div>
+
+          <div class="curriculum-grid">
+            <div class="curriculum-meta">
+              <span>Strand</span>
+              <strong>{{ selectedTopic.curriculum.strand }}</strong>
+            </div>
+            <div class="curriculum-meta">
+              <span>Quarter</span>
+              <strong>{{ selectedTopic.curriculum.quarter }}</strong>
+            </div>
+            <div class="curriculum-meta wide">
+              <span>Subject</span>
+              <strong>{{ selectedTopic.curriculum.subject }}</strong>
+            </div>
+            <div class="curriculum-meta wide">
+              <span>Competency</span>
+              <strong>{{ selectedTopic.curriculum.competencyCode }}</strong>
+            </div>
+          </div>
+
+          <p class="curriculum-summary">{{ selectedTopic.curriculum.competencyStatement }}</p>
+          <div class="curriculum-footer">
+            <span>{{ selectedTopic.curriculum.source.title }}</span>
+            <a [href]="selectedTopic.curriculum.source.url" target="_blank" rel="noopener noreferrer">Official reference</a>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card *ngIf="coachPreview" class="coach-card" [ngClass]="coachPreview.priority === 'high' ? 'coach-high' : coachPreview.priority === 'medium' ? 'coach-medium' : 'coach-low'">
+        <ion-card-content>
+          <p class="eyebrow">Coach Preview</p>
+          <h3>{{ coachPreview.competencyTitle }}</h3>
+          <p>{{ coachPreview.summary }}</p>
+          <p class="coach-action">{{ coachPreview.action }}</p>
+        </ion-card-content>
+      </ion-card>
+
       <ion-button expand="block" class="primary-button" (click)="beginActivity()">Start Quiz</ion-button>
       <ion-text *ngIf="studyFeedback" color="primary" class="study-feedback">{{ studyFeedback }}</ion-text>
     </section>
@@ -293,7 +371,7 @@
 
       <div class="quiz-actions" *ngIf="quizSubmitted">
         <ion-button *ngIf="quizFeedback === 'Incorrect'" expand="block" fill="outline" (click)="retryQuestion()">
-          Retry Question
+          Review & Retry
         </ion-button>
         <ion-button *ngIf="quizFeedback === 'Correct! +1 point'" expand="block" class="primary-button" (click)="nextQuestion()">
           Next Question
@@ -319,6 +397,15 @@
           <p>Grade: {{ lastGrade?.label }} ({{ lastGrade?.description }})</p>
           <p>Performance: {{ lastGrade?.performanceMessage }}</p>
           <p>Topic completed: {{ selectedTopic.title }}</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card *ngIf="coachRecommendation" class="coach-card" [ngClass]="coachRecommendation.priority === 'high' ? 'coach-high' : coachRecommendation.priority === 'medium' ? 'coach-medium' : 'coach-low'">
+        <ion-card-content>
+          <p class="eyebrow">AI Learning Coach</p>
+          <h3>{{ coachRecommendation.competencyTitle }}</h3>
+          <p>{{ coachRecommendation.summary }}</p>
+          <p class="coach-action">{{ coachRecommendation.action }}</p>
         </ion-card-content>
       </ion-card>
 

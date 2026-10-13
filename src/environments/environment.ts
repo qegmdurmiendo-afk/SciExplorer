@@ -3,7 +3,12 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  aiApiKey: '',
+  aiProvider: 'groq',
+  aiModel: 'openai/gpt-oss-20b',
+  aiBaseUrl: 'https://api.groq.com/openai/v1',
+  aiProxyUrl: 'http://localhost:3001/api/ai',
 };
 
 /*
