@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>📖 Lessons</ion-title>
+  </ion-toolbar>
+
+  <ion-segment [(ngModel)]="selectedSubject" (ionChange)="onFilterChange()">
+    <ion-segment-button value="All">All</ion-segment-button>
+    <ion-segment-button value="Science">Science</ion-segment-button>
+    <ion-segment-button value="Math">Math</ion-segment-button>
+  </ion-segment>
+
+  <div class="ion-padding-horizontal ion-padding-vertical">
+    <ion-select [(ngModel)]="selectedGrade" (ionChange)="onFilterChange()" placeholder="Select Grade">
+      <ion-select-option value="All">All Grades</ion-select-option>
+      <ion-select-option [value]="7">Grade 7</ion-select-option>
+      <ion-select-option [value]="8">Grade 8</ion-select-option>
+      <ion-select-option [value]="9">Grade 9</ion-select-option>
+      <ion-select-option [value]="10">Grade 10</ion-select-option>
+    </ion-select>
+  </div>
+</ion-header>
+
+<ion-content>
+  <ion-list lines="none">
+    <ion-item *ngFor="let lesson of filtered" class="feature-card">
+      <ion-thumbnail slot="start">
+        <ion-icon 
+          [name]="lesson.subject === 'Science' ? 'flask' : 'calculator'" 
+          size="large" 
+          color="primary">
+        </ion-icon>
+      </ion-thumbnail>
+      <ion-label>
+        <h3>{{ lesson.title }}</h3>
+        <p>Grade {{ lesson.gradeLevel }} · {{ lesson.description }}</p>
+        <ion-progress-bar [value]="lesson.progress / 100" class="ion-margin-top"></ion-progress-bar>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

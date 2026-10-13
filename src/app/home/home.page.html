@@ -1,0 +1,451 @@
+<ion-content class="page-shell" [fullscreen]="true">
+  <div class="app-container">
+    <section *ngIf="screen === 'splash'" class="screen splash-screen">
+      <div class="splash-content">
+        <div class="splash-badge" aria-label="SciExplore PH loading logo">
+          <div class="logo-circle">
+            <ion-icon name="planet-outline"></ion-icon>
+          </div>
+          <span class="orbit orbit-one"></span>
+          <span class="orbit orbit-two"></span>
+        </div>
+
+        <div class="splash-copy">
+          <h1>SciExplore PH</h1>
+          <p>Explore. Learn. Discover.</p>
+        </div>
+
+        <div class="loading-row" aria-live="polite" aria-label="Application is loading">
+          <span class="loading-text">Loading</span>
+          <span class="loading-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="screen === 'menu'" class="screen menu-screen">
+      <div class="header-block menu-header">
+        <p class="eyebrow">Learning portal</p>
+        <h1>SciExplore PH</h1>
+        <p class="subtitle">Explore Science and Mathematics</p>
+      </div>
+
+      <div class="menu-stack">
+        <ion-card class="menu-card menu-card-primary" button="true" (click)="chooseSubject('Science')">
+          <div class="menu-card-row">
+            <div class="menu-icon-wrap science-icon">
+              <ion-icon name="flask-outline"></ion-icon>
+            </div>
+            <div class="menu-copy">
+              <h3>Science</h3>
+              <p>Explore scientific concepts</p>
+            </div>
+            <ion-icon class="arrow" name="chevron-forward-outline"></ion-icon>
+          </div>
+        </ion-card>
+
+        <ion-card class="menu-card menu-card-secondary" button="true" (click)="chooseSubject('Mathematics')">
+          <div class="menu-card-row">
+            <div class="menu-icon-wrap math-icon">
+              <ion-icon name="calculator-outline"></ion-icon>
+            </div>
+            <div class="menu-copy">
+              <h3>Mathematics</h3>
+              <p>Practice mathematical concepts</p>
+            </div>
+            <ion-icon class="arrow" name="chevron-forward-outline"></ion-icon>
+          </div>
+        </ion-card>
+
+        <div class="shortcut-row">
+          <ion-card class="mini-card" button="true" (click)="openProgress()">
+            <div class="mini-inner">
+              <ion-icon name="stats-chart-outline"></ion-icon>
+              <span>Progress</span>
+            </div>
+          </ion-card>
+
+          <ion-card class="mini-card" button="true" (click)="openStudyLater()">
+            <div class="mini-inner">
+              <ion-icon name="bookmark-outline"></ion-icon>
+              <span>Study Later</span>
+            </div>
+          </ion-card>
+        </div>
+
+        <div class="menu-footer">
+          <ion-button expand="block" fill="clear" class="link-button" (click)="showInstructions = !showInstructions">
+            Instructions
+          </ion-button>
+
+          <ion-card *ngIf="showInstructions" class="info-card">
+            <ion-card-content>
+              Choose a subject, study a lesson, complete a quick activity, then answer a short quiz to earn points and track your progress.
+            </ion-card-content>
+          </ion-card>
+
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="screen === 'subject'" class="screen subject-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Main Menu</span>
+      </button>
+
+      <div class="header-block">
+        <p class="eyebrow">Select subject</p>
+        <h2>Choose a subject</h2>
+      </div>
+
+      <ion-list lines="none">
+        <ion-item button="true" detail="true" *ngFor="let subject of subjectOptions" (click)="chooseSubject(subject)" class="nav-card">
+          <ion-icon slot="start" [name]="subject === 'Science' ? 'flask-outline' : 'calculator-outline'" color="primary"></ion-icon>
+          <ion-label>
+            <h3>{{ subject }}</h3>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-button fill="clear" (click)="backToMenu()">Back to Main Menu</ion-button>
+    </section>
+
+    <section *ngIf="screen === 'topics'" class="screen topics-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Main Menu</span>
+      </button>
+
+      <div class="header-block topic-header">
+        <p class="eyebrow">{{ selectedSubject }}</p>
+        <h2>Choose a topic</h2>
+        <p class="topic-subtitle" *ngIf="selectedSubject === 'Science'">
+          Explore science topics and learn at your own pace.
+        </p>
+        <p class="topic-subtitle" *ngIf="selectedSubject === 'Mathematics'">
+          Practice mathematical concepts and build your understanding.
+        </p>
+        <div class="topic-summary-row">
+          <span>{{ availableTopics.length }} Topics</span>
+          <span>{{ availableTopics.filter(topic => getTopicStatus(topic) === 'Completed').length }} Completed</span>
+        </div>
+      </div>
+
+      <div *ngIf="availableTopics.length === 0" class="empty-topic-state">
+        <p>No topics available.</p>
+        <span>Topics will appear here when they are added.</span>
+        <ion-button expand="block" fill="outline" (click)="backToMenu()">Back to Main Menu</ion-button>
+      </div>
+
+      <div *ngIf="availableTopics.length > 0" class="topic-list">
+        <article *ngFor="let topic of availableTopics; let i = index" class="topic-card" [style.animationDelay.ms]="i * 80" (click)="openTopic(topic)" tabindex="0" (keydown.enter)="openTopic(topic)" (keydown.space)="openTopic(topic)">
+          <div class="topic-card-top">
+            <div class="topic-info">
+              <h3>{{ topic.title }}</h3>
+              <p>{{ topic.summary }}</p>
+            </div>
+
+            <button class="bookmark-button" type="button" (click)="$event.stopPropagation(); saveForLater(topic)" [attr.aria-label]="studyLater.some(item => item.topicId === topic.id) ? 'Saved to Study Later' : 'Save to Study Later'">
+              <ion-icon [name]="studyLater.some(item => item.topicId === topic.id) ? 'bookmark' : 'bookmark-outline'"></ion-icon>
+            </button>
+          </div>
+
+          <div class="topic-card-bottom">
+            <span class="status-pill" [ngClass]="getTopicStatusClass(topic)">{{ getTopicStatus(topic) }}</span>
+            <span class="card-arrow" aria-hidden="true">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </span>
+          </div>
+        </article>
+      </div>
+
+      <ion-text *ngIf="studyFeedback" color="primary" class="study-feedback">{{ studyFeedback }}</ion-text>
+    </section>
+
+    <section *ngIf="screen === 'lesson' && selectedTopic" class="screen lesson-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Back</span>
+      </button>
+
+      <div class="header-block">
+        <p class="eyebrow">{{ selectedTopic.subject }}</p>
+        <h2>{{ selectedTopic.title }}</h2>
+      </div>
+
+      <ion-card class="lesson-card">
+        <ion-card-content>
+          <div class="lesson-section">
+            <h3>Introduction</h3>
+            <p>{{ selectedTopic.introduction }}</p>
+          </div>
+
+          <div class="lesson-section">
+            <h3>Key Concepts</h3>
+            <ul>
+              <li *ngFor="let concept of selectedTopic.keyConcepts">{{ concept }}</li>
+            </ul>
+          </div>
+
+          <div class="lesson-section">
+            <h3>Example</h3>
+            <p>{{ selectedTopic.example }}</p>
+          </div>
+
+          <div class="lesson-section">
+            <h3>Did You Know?</h3>
+            <p>{{ selectedTopic.didYouKnow }}</p>
+          </div>
+
+          <div class="lesson-section">
+            <h3>Key Takeaways</h3>
+            <ul>
+              <li *ngFor="let item of selectedTopic.takeaways">{{ item }}</li>
+            </ul>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button expand="block" class="primary-button" (click)="saveForLater(selectedTopic)">
+        {{ studyLater.some(item => item.topicId === selectedTopic?.id) ? 'Saved to Study Later' : 'Study Later' }}
+      </ion-button>
+
+      <ion-button expand="block" class="primary-button" (click)="beginActivity()">Start Quiz</ion-button>
+      <ion-text *ngIf="studyFeedback" color="primary" class="study-feedback">{{ studyFeedback }}</ion-text>
+    </section>
+
+    <section *ngIf="screen === 'activity' && selectedTopic" class="screen activity-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Back</span>
+      </button>
+
+      <div class="header-block">
+        <p class="eyebrow">Quick activity</p>
+        <h2>{{ selectedTopic.activity.prompt }}</h2>
+      </div>
+
+      <ion-list lines="none">
+        <ion-item *ngFor="let option of selectedTopic.activity.options" lines="none" class="answer-option">
+          <ion-checkbox
+            slot="start"
+            [checked]="activityChoice === option"
+            [disabled]="activitySubmitted"
+            (ionChange)="activityChoice = option"
+          ></ion-checkbox>
+          <ion-label>{{ option }}</ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-button expand="block" class="primary-button" [disabled]="!activityChoice || activitySubmitted" (click)="submitActivity()">
+        Check Answer
+      </ion-button>
+
+      <ion-card *ngIf="activitySubmitted" class="status-card" [ngClass]="activityChoice === selectedTopic!.activity.correct ? 'success' : 'warning'">
+        <ion-card-content>
+          <p>{{ activityFeedback }}</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button *ngIf="activitySubmitted" expand="block" class="primary-button" (click)="continueToQuiz()">
+        Continue to Quiz
+      </ion-button>
+    </section>
+
+    <section *ngIf="screen === 'quiz' && selectedTopic" class="screen quiz-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Back</span>
+      </button>
+
+      <div class="header-block">
+        <p class="eyebrow">Question {{ quizIndex + 1 }} of {{ selectedTopic.quiz.length }}</p>
+        <h2>{{ currentQuestion?.question }}</h2>
+      </div>
+
+      <ion-list lines="none">
+        <ion-item *ngFor="let option of currentQuestion?.options ?? []" lines="none" class="answer-option">
+          <ion-radio-group [(ngModel)]="selectedQuizAnswer" [disabled]="quizSubmitted">
+            <ion-item lines="none">
+              <ion-radio slot="start" [value]="option" [disabled]="quizSubmitted"></ion-radio>
+              <ion-label>{{ option }}</ion-label>
+            </ion-item>
+          </ion-radio-group>
+        </ion-item>
+      </ion-list>
+
+      <ion-text color="danger" *ngIf="answerRequired" class="error-text">Please select an answer before continuing.</ion-text>
+
+      <ion-button expand="block" class="primary-button" (click)="submitQuizAnswer()" [disabled]="!selectedQuizAnswer || quizSubmitted">
+        Submit Answer
+      </ion-button>
+
+      <ion-card *ngIf="quizSubmitted" class="status-card" [ngClass]="quizFeedback.includes('Correct') ? 'success' : 'warning'">
+        <ion-card-content>
+          <p><strong>{{ quizFeedback }}</strong></p>
+          <p>{{ quizExplanation }}</p>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="quiz-actions" *ngIf="quizSubmitted">
+        <ion-button *ngIf="quizFeedback === 'Incorrect'" expand="block" fill="outline" (click)="retryQuestion()">
+          Retry Question
+        </ion-button>
+        <ion-button *ngIf="quizFeedback === 'Correct! +1 point'" expand="block" class="primary-button" (click)="nextQuestion()">
+          Next Question
+        </ion-button>
+      </div>
+    </section>
+
+    <section *ngIf="screen === 'result' && selectedTopic" class="screen result-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Back</span>
+      </button>
+
+      <div class="header-block">
+        <p class="eyebrow">Quiz complete</p>
+        <h2>Quiz Complete!</h2>
+      </div>
+
+      <ion-card class="result-card">
+        <ion-card-content>
+          <p class="score-line">Score: {{ score }} / {{ selectedTopic.quiz.length }}</p>
+          <p>Percentage: {{ lastPercentage }}%</p>
+          <p>Grade: {{ lastGrade?.label }} ({{ lastGrade?.description }})</p>
+          <p>Performance: {{ lastGrade?.performanceMessage }}</p>
+          <p>Topic completed: {{ selectedTopic.title }}</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button expand="block" class="primary-button" (click)="retakeQuiz()">Retake Quiz</ion-button>
+      <ion-button expand="block" fill="outline" (click)="studyAnotherTopic()">Continue / Back to Topics</ion-button>
+    </section>
+
+    <section *ngIf="screen === 'progress'" class="screen progress-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Main Menu</span>
+      </button>
+
+      <div class="header-block">
+        <p class="eyebrow">My Progress</p>
+        <h2>Overall Progress</h2>
+      </div>
+
+      <ion-card class="progress-card">
+        <ion-card-content>
+          <div class="progress-row">
+            <span>{{ overallProgressPercent }}%</span>
+          </div>
+          <ion-progress-bar [value]="overallProgressPercent / 100" color="primary"></ion-progress-bar>
+          <div class="stats-grid">
+            <div>
+              <p class="stat-label">Topics Completed</p>
+              <strong>{{ completedCount }} / {{ totalTopics }}</strong>
+            </div>
+            <div>
+              <p class="stat-label">Average Grade</p>
+              <strong>{{ averageGradePercent }}%</strong>
+            </div>
+            <div>
+              <p class="stat-label">Topics in Progress</p>
+              <strong>{{ topicsInProgress }}</strong>
+            </div>
+            <div>
+              <p class="stat-label">Saved for Later</p>
+              <strong>{{ savedLaterCount }}</strong>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="section-header-row">
+        <h3>Completed Topics</h3>
+      </div>
+
+      <ion-card *ngIf="completedTopicResults.length === 0" class="empty-card">
+        <ion-card-content>
+          <p>No completed topics yet.</p>
+          <p>Complete a lesson and quiz to see your progress here.</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-list *ngIf="completedTopicResults.length > 0" lines="none">
+        <ion-item *ngFor="let result of completedTopicResults" class="result-list-item">
+          <ion-label>
+            <h4>{{ result.title }}</h4>
+            <p>Score: {{ result.score }}/{{ result.total }}</p>
+            <p>Grade: {{ result.gradeLabel }} — {{ result.description }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <div class="section-header-row">
+        <h3>Study Later</h3>
+      </div>
+
+      <ion-card *ngIf="studyLater.length === 0" class="empty-card">
+        <ion-card-content>
+          <p>No saved topics yet.</p>
+          <p>Save a topic to Study Later and it will appear here.</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-list *ngIf="studyLater.length > 0" lines="none">
+        <ion-item *ngFor="let saved of studyLater" class="saved-list-item">
+          <ion-label>
+            <h4>{{ saved.title }}</h4>
+            <p>{{ saved.subject }}</p>
+          </ion-label>
+          <div class="saved-actions" slot="end">
+            <ion-button fill="clear" size="small" (click)="continueSavedTopic(saved.topicId)">Study</ion-button>
+            <ion-button fill="clear" color="danger" size="small" (click)="removeSavedTopic(saved.topicId)">Remove</ion-button>
+          </div>
+        </ion-item>
+      </ion-list>
+
+      <ion-button expand="block" fill="outline" (click)="openStudyLater()">Open Study Later</ion-button>
+    </section>
+
+    <section *ngIf="screen === 'studyLater'" class="screen study-later-screen">
+      <button class="back-link" type="button" (click)="onTopBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        <span>Main Menu</span>
+      </button>
+
+      <div class="header-block">
+        <p class="eyebrow">Study Later</p>
+        <h2>Saved topics</h2>
+      </div>
+
+      <ion-card *ngIf="studyLater.length === 0" class="empty-card">
+        <ion-card-content>
+          <p>No saved topics yet.</p>
+          <p>Save a topic to Study Later and it will appear here.</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-list *ngIf="studyLater.length > 0" lines="none">
+        <ion-item *ngFor="let saved of studyLater" class="saved-list-item">
+          <ion-label>
+            <h4>{{ saved.title }}</h4>
+            <p>{{ saved.subject }}</p>
+          </ion-label>
+          <div class="saved-actions" slot="end">
+            <ion-button fill="clear" size="small" (click)="continueSavedTopic(saved.topicId)">Study</ion-button>
+            <ion-button fill="clear" color="danger" size="small" (click)="removeSavedTopic(saved.topicId)">Remove</ion-button>
+          </div>
+        </ion-item>
+      </ion-list>
+
+      <ion-button expand="block" fill="outline" (click)="openProgress()">Back to Progress</ion-button>
+    </section>
+
+  </div>
+</ion-content>
+
